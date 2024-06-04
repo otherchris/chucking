@@ -1,13 +1,23 @@
 public class Voice {
   ADSR gainEnv;
-  SinOsc osc;
+  Osc osc;
 
   fun Voice() {
+    new SinOsc() @=> osc;
     osc => gainEnv => dac;
-    gainEnv.set( 1::ms, 8::ms, .5, 50::ms );
+    gainEnv.set( 1::ms, 8::ms, .1, 5::ms );
   }
 
-  fun Voice(int attack, int decay, float sustain, int release) {
+  fun Voice(string type, int attack, int decay, float sustain, int release) {
+    if (type == "sin") {
+      new SinOsc() @=> osc;
+    }
+    if (type == "tri") {
+      new TriOsc() @=> osc;
+    }
+    if (type == "saw") {
+      new SawOsc() @=> osc;
+    }
     osc => gainEnv => dac;
     gainEnv.set( attack::ms, decay::ms, sustain, release::ms );
   }
