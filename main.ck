@@ -1,46 +1,30 @@
-// number of the device to open (see: chuck --probe)
-0 => int device;
-1 => int other;
-// get command line
-if( me.args() ) me.arg(0) => Std.atoi => device;
-
-// the midi event
-MidiIn min;
-MidiIn min2;
-// the message for retrieving data
-MidiMsg msg;
-MidiMsg msg2;
+MidiIn midis[16];
+MidiMsg msgs[16];
 
 // open the device
-if( !min.open( device ) ) me.exit();
-if( !min2.open( other ) ) me.exit();
+for (0 => int i; i < 16; i++) {
+   midis[i].open(i);
+   <<< "MIDI device:", midis[i].num(), " -> ", midis[i].name() >>>;
+}
 
-// print out device that was opened
-<<< "MIDI device:", min.num(), " -> ", min.name() >>>;
-<<< "MIDI other:", min2.num(), " -> ", min2.name() >>>;
-
+// define instruments
 Voice v1;
 Voice v2(50, 10, .9, 100);
 
-<<< "sporkin" >>>;
-spork ~ midiListen(min, v1);
-spork ~ midiListen(min2, v2);
-<<< "sporked" >>>;
+// hook up the instruments 
+spork ~ midiListen(midis[0], msgs[0], v1);
+spork ~ midiListen(midis[1], msgs[1], v2);
 
 // infinite time-loop
 while (true) {
-  min => now;
+  midis[0] => now;
   me.yield();
 }
 
-fun void midiListen(MidiIn midiIn, Voice v) {
-  <<< "doing midi listen", midiIn.name() >>>;
+fun void midiListen(MidiIn midiIn, MidiMsg msg, Voice v) {
   while(true) {
-    <<< "loopin" >>>;
     midiIn => now;
-    <<< "how soon is now" >>>;
     while(midiIn.recv(msg)) {
-      <<< msg >>>;
       v.handleMsg(msg.data1, msg.data2, msg.data3);
     }
   }
