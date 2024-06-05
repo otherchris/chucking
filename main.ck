@@ -1,27 +1,31 @@
+// Length of interval (in ms) for polling voices for updates
+5 => int TICK;
+
+// Set up midi channels
 MidiIn midis[16];
 MidiMsg msgs[16];
 
-// open the device
+// Open devices on the midi channels
 for (0 => int i; i < 16; i++) {
    midis[i].open(i);
    <<< "MIDI device:", midis[i].num(), " -> ", midis[i].name() >>>;
 }
 
-// define instruments
-Voice v1("saw", 1, 8, .1, 5);
-Voice v2("tri", 50, 10, .9, 100);
-Voice v3("sin", 50, 10, .9, 100);
-Voice v4("sin", 1, 8, .1, 5);
+// Define instruments
+Voice @ voices[1];
+OrbitsVoice v1(15, 10, .3, 50) @=> voices[0];
 
-// hook up the instruments 
-spork ~ midiListen(midis[0], msgs[0], v1);
-spork ~ midiListen(midis[1], msgs[1], v2);
-spork ~ midiListen(midis[2], msgs[2], v3);
-spork ~ midiListen(midis[3], msgs[3], v4);
+// Hook up the instruments 
+for (0 => int i; i < voices.size(); i++) {
+  spork ~ midiListen(midis[i], msgs[i], voices[i]);
+}
 
-// infinite time-loop
+// Main loop
 while (true) {
-  midis[0] => now;
+  TICK::ms => now;
+  for (Voice v : voices) {
+    v.adv();
+  }
   me.yield();
 }
 
@@ -29,7 +33,7 @@ fun void midiListen(MidiIn midiIn, MidiMsg msg, Voice v) {
   while(true) {
     midiIn => now;
     while(midiIn.recv(msg)) {
-      v.handleMsg(msg.data1, msg.data2, msg.data3);
+      v.handleMidiMsg(msg);
     }
   }
 }
