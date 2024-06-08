@@ -12,8 +12,9 @@ for (0 => int i; i < 16; i++) {
 }
 
 // Define instruments
-Voice @ voices[1];
-OrbitsVoice v1(15, 10, .3, 50) @=> voices[0];
+Voice @ voices[2];
+BellVoice v1() @=> voices[0];
+FMVoxVoice v2() @=> voices[1];
 
 // Hook up the instruments 
 for (0 => int i; i < voices.size(); i++) {

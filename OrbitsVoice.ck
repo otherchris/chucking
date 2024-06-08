@@ -1,11 +1,12 @@
 public class OrbitsVoice extends Voice {
   ADSR gainEnv;
+  ADSR filterEnv;
   LPF lopass;
   LFO filterLFO;
   LFO panLFO;
   Pan2 pan1;
   Pan2 pan2;
-  SinOsc saw1;
+  SawOsc saw1;
   TriOsc tri1;
   SinOsc saw2;
   TriOsc tri2;
@@ -20,8 +21,8 @@ public class OrbitsVoice extends Voice {
     pan1 => dac;
     pan2 => dac;
     gainEnv.set( attack::ms, decay::ms, sustain, release::ms );
-    lopass.set(20000, 0);
-    new LFO("sin", 0.1, 3000, 5000) @=> filterLFO;
+    lopass.set(20000, 10);
+    new LFO("sin", 0.1, 300, 500) @=> filterLFO;
     new LFO("sin", 0.6, 1, 0) @=> panLFO;
   }
 
@@ -35,9 +36,8 @@ public class OrbitsVoice extends Voice {
   }
 
   fun void adv() {
-    filterLFO.poll() => lopass.freq;
+    gainEnv.value() * 1000 => lopass.freq;
     panLFO.poll() => pan1.pan;
     panLFO.poll() * -1 => pan2.pan;
-    me.yield();
   }
 }
